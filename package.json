@@ -1,0 +1,25 @@
+{
+  "name": "chatbot-service",
+  "version": "1.0.0",
+  "description": "REST service for the Wit.ai chatbot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NenaBas/Chatbot-Service.git"
+  },
+  "keywords": [
+    "wit.ai",
+    "chatbot",
+    "rest",
+    "node.js"
+  ],
+  "author": "Nena Basina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NenaBas/Chatbot-Service/issues"
+  },
+  "homepage": "https://github.com/NenaBas/Chatbot-Service#readme"
+}
