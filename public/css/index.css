@@ -40,7 +40,6 @@ p, form {
     background: rgba(#fff, 0.1);
     box-shadow: 2px 1px 10px rgba(#A9A6A6, 0.4);
     margin: 0 auto;
-    /* padding: 10px; */
 }
 
 /***************************************************/
@@ -49,6 +48,11 @@ p, form {
 .chat-log {
     box-sizing: border-box;
     overflow-y: auto;
+}
+::-webkit-scrollbar {
+    width: 0px;
+    opacity: 0.6;
+    background: transparent; /* make scrollbar transparent */
 }
 
 .chat-message, .chat-message--right {
@@ -72,7 +76,6 @@ p, form {
 .chat-message__text {
     display: block;
     max-width: 65%;
-    /* background: linear-gradient(#5867fb, #3F51B5); */
     background: linear-gradient(#5E82A7, #3F5973);
     border-radius: 14px;
     box-sizing: border-box;
@@ -90,10 +93,30 @@ p, form {
 .chat-message--right,
 .chat-message--right +
 .chat-message {
-    margin-top: 32px;
+    margin-top: 10px;
 }
 
+/* Add a corner on first message for user */
+.chat-message:not(.chat-message--right) +
+.chat-message--right .chat-message__text {
+    border-radius: 18px 0 18px 18px;
+}
 
+/* .chat-message:first-of-type,
+.chat-message--right +
+.chat-message:not(.chat-message--right) 
+.chat-message__text {
+    border-radius: 0 18px 18px;
+} */
+
+/*  Handle consecutive messages:
+    Remove extra space */
+.chat-message:not(.chat-message--right) + 
+.chat-message:not(.chat-message--right),
+.chat-message--right +
+.chat-message--right {
+    margin-top: 0;
+}
 
 /***************************************************/
 /* CHAT INPUT  */
