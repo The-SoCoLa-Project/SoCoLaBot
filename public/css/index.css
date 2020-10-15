@@ -1,0 +1,147 @@
+ /* Animation */
+@keyframes fly-in {
+    0% {
+        transform: scale(0.85) translateY(10%);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Resets */
+body {
+    position: absolute;
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+}
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+p, form {
+  margin: 0;
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 600px;
+    height: 100vh;  
+    /* stretch across all the viewport height, 
+       but it's children won't take up all the 
+       available vertical space*/
+    background: rgba(#fff, 0.1);
+    box-shadow: 2px 1px 10px rgba(#A9A6A6, 0.4);
+    margin: 0 auto;
+    /* padding: 10px; */
+}
+
+/***************************************************/
+/* CHAT OUTPUT  */
+/***************************************************/
+.chat-log {
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.chat-message, .chat-message--right {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    transition: all 0.5s;
+}
+
+/* align right for user  */
+.chat-message--right {
+    flex-direction: row-reverse;
+}
+
+.chat-message--right  > .chat-message__text {
+    background: linear-gradient(aliceblue, #A6BACE);
+    color: #333333;
+}
+
+.chat-message__text {
+    display: block;
+    max-width: 65%;
+    /* background: linear-gradient(#5867fb, #3F51B5); */
+    background: linear-gradient(#5E82A7, #3F5973);
+    border-radius: 14px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 300;
+    color:  #e4e3e3;
+  
+    animation-duration: 0.3s;
+    animation-name: fly-in;
+}
+
+/* Αdd space between messages */
+.chat-message +
+.chat-message--right,
+.chat-message--right +
+.chat-message {
+    margin-top: 32px;
+}
+
+
+
+/***************************************************/
+/* CHAT INPUT  */
+/***************************************************/
+.chat-input-area {
+    position: relative;
+}
+
+.chat-input-area__input {
+    width: 100%;
+    background-color: rgb(63, 89, 115);
+    border: 1px solid rgb(63, 89, 115) !important;
+    border: none;
+    box-sizing: border-box;
+    padding: 16px;
+    padding-right: 50px;
+    color: aliceblue;
+}
+
+.chat-input-area__input:focus {
+    outline: none;
+}
+
+.chat-input-area__input::placeholder {
+    color: aliceblue;
+    opacity: 0.4;
+}
+
+.chat-input-area__submit-button {
+    position: absolute;
+    top: 0;
+    right: 16px;
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+    background-image: url('../images/paper-plane.svg');
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    border: none;
+    margin: auto;
+}
+
+.chat-input-area__submit-button:focus {
+    outline: none;
+}
+
+.chat-input-area__submit-button:hover {
+    cursor: pointer;
+}
