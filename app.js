@@ -8,7 +8,6 @@ const app = Restify.createServer({
     name: 'socolabot'
 })
 
-
 // WIT STARTING POINT
 const fb_token = 'abc12345'
 const bot = new methods('EAAIidVs6fVYBAGGBrywkRKKXKyG8F2UGP2y6sZA7dcO29whI1HVjR6PrOxGzXJnDFbCZBMwE7nrnWEbzqsWnoHS8ZAqzaHrVD27BxdO1qZBlvPUvbtC6AZBRIRlGkfOPZAdHn3mwhfDAWRu5yUGrdvIjfnGrBNxo189seRG9UsuwZDZD')
@@ -34,4 +33,8 @@ app.post('/', (req, res, next) => {
     }
 })
 
-app.listen(8080, () => console.log('server is running'))
+const port = 8080
+
+app.listen(port, () => {
+    console.log('Chatbot service is running on port ' + port)
+})
