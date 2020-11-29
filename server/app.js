@@ -1,16 +1,54 @@
+process.title = 'node-chat';
 // =============================================================================
 // SERVER SIDE CODE
 // =============================================================================
-const express = require('express')
-const app = express()
+const express = require('express');
+const ws = require('ws');
+const app = express();
 
 const bodyParser= require('body-parser');
 const methods = require('./methods');
+const httpserver = require('http').createServer(app);
+
+// -------------------------------------------------
+// WebSocket server
+// -------------------------------------------------
+// set up headless websocket server that prints any
+// event that come in
+
+const wsServer = new ws.Server({port:3000});
+// invoked whenever a new client connects
+wsServer.on('connection', socket => {
+    var userMsg;
+    socket.on('message', message => {
+        userMsg = message;
+        console.log("WS user said: ", userMsg)
+        socket.send(`You said: ${userMsg}`);
+    });
+});
+
+
+// upgrade process
+// https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
+// server.on('upgrade', (req, socket, head) => {
+//     wsServer.handleUpgrade(req, socket, head, socket => {
+//         wsServer.emit('connection', socket, req);
+//     })
+// });
+
+
+// function sendEvent(eventData) {
+//     server.clients.forEach(client => {
+//         client.send(JSON.stringify(eventData));
+//     });
+// }
+// -------------------------------------------------
 
 const port = process.env.port || 80;
-const hostname = '139.91.183.118';
+// const hostname = '139.91.183.118';
+const hostname = '192.168.1.6';
 
-app.listen(port, () => {
+app.listen(port, hostname, () => {
     console.log(`Chatbot Server is listening at     http://${hostname}:${port}`);
 })
 
@@ -79,10 +117,13 @@ router.route('/chatbot')
 
 //// on routes that end in /chatbot/getUserMsg
 // --------------------------------------------------------------------------------------------
-router.route('/chatbot/getUserMsg')
+router.route('/chatbot/userMsg')
 // (accessed at GET http://localhost:80/api/chatbot/getUserMsg)
 .get((req, res) => {
     res.send("got user msg");
+})
+.post((req, res) => {
+    console.log("User said: ", req.body.userMsg);
 });
 
 //// on routes that end in /chatbot/getBotMsg
@@ -95,3 +136,5 @@ router.route('/chatbot/getBotMsg')
 .post((req, res) => {    // then send to chatbot frontend
     res.send("got bot msg");
 });
+
+module.exports = router;

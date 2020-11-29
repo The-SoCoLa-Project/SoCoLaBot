@@ -15,6 +15,33 @@ function scrollContents(container) {
 
 var responseMsg = "";
 
+/***********************
+ * WebSocket Setup
+ */
+const socket = new WebSocket("ws://192.168.1.6:3000");
+
+socket.onopen = () => {
+    console.log("Connected to WS Server");
+}
+socket.onmessage = (event) => {
+    console.log("Message from server: ", event.data);
+    addBotMsg(event.data);
+}
+socket.onclose = (event) => {
+    if (event.wasClean) {
+        console.log(`[CLOSE] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+    } else {
+        // e.g. server process killed or network down
+        // event.code is usually 1006 in this case
+        console.error(`[CLOSE ERROR] Connection died, code=${event.code}`);
+    }
+}
+socket.onerror = (error) => {
+    console.error(`[ERROR] ${error.message}`);
+}
+const sendMsg = (msgToSend) => {
+    socket.send(msgToSend);
+}
 
 /*****************************************************************************
  * USER MESSAGES
@@ -58,15 +85,25 @@ function addUserMsg(msg) {
 }
 
 // jquery request to get user msg (if exists) from the Server
-var receiveUserMsg = () => $.get("./api/chatbot/getUserMsg")
+var receiveUserMsg = () => $.get("./api/chatbot/userMsg")
 .fail((err)=>{
     console.error(err,": Failed to receive user message from chatbot server");
 })
 .done((data)=>{
     console.log('success');
-    console.log("User msg:\n",data);
+    console.log("-->User msg:",data);
     addUserMsg(data);
 })
+
+var sendUserMsg = (msg) => 
+$.post("./api/chatbot/userMsg", {userMsg: msg})
+.fail((err)=>{
+    console.error(err,": Failed to send the user message!")
+})
+.done((data)=>{
+    console.log("User msg sent successfully!")
+    // TODO: 
+});
 
 // Handle form submit (clicking on the submit button or pressing Enter)
 chatForm[0].addEventListener('submit', function(e) {
@@ -81,14 +118,18 @@ chatForm[0].addEventListener('submit', function(e) {
     // Add user's message to the chat log
     addUserMsg(chatInputField[0].value);
 
+    // send the usermsg to the server via the websocket
+    sendMsg(chatInputField[0].value);
+    // sendUserMsg(chatInputField[0].value);
+
+    // receiveUserMsg();
+    // receiveBotMsg();
+
     // Get the reply from wit.ai
     // getReply(chatInputField[0].value);
 
     // Clear input
     chatInputField[0].value = '';
-
-    receiveUserMsg();
-    receiveBotMsg();
 });
 
 
@@ -96,13 +137,13 @@ chatForm[0].addEventListener('submit', function(e) {
  * CHATBOT MESSAGES/REPLIES
  *****************************************************************************/
 // jquery request to get bot msg from the Server
-var receiveBotMsg = () => $.post("./api/chatbot/getBotMsg")
+var receiveBotMsg = () => $.get("./api/chatbot/getBotMsg")
 .fail((err)=>{
     console.error(err,": Failed to receive bot message from chatbot server");
 })
 .done((data)=>{
     console.log('success');
-    console.log("Bot msg:\n",data);
+    console.log("-->Bot msg:",data);
     addBotMsg(data);
 })
 
