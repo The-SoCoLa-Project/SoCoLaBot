@@ -5,6 +5,8 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
+const GUIaddr = 'http://192.168.1.3:443/';
+
 /**
  * Scrolls the contents of a container to the bottom
  * @function scrollContents 
@@ -18,14 +20,20 @@ var responseMsg = "";
 /***********************
  * WebSocket Setup
  */
-const socket = new WebSocket("ws://192.168.1.6:3000");
+const socket = new WebSocket("ws://192.168.1.3:3000");
 
 socket.onopen = () => {
     console.log("Connected to WS Server");
 }
 socket.onmessage = (event) => {
-    console.log("Message from server: ", event.data);
-    addBotMsg(event.data);
+    var botMsg = event.data;
+    // console.log("event.data.value: "+event.data.value)
+    if (event.data.value) {
+        botMsg = event.data.value;
+    }
+    // console.log("Message from server: ", botMsg);
+    addBotMsg(botMsg);
+    handleWitReply(botMsg);
 }
 socket.onclose = (event) => {
     if (event.wasClean) {
@@ -154,4 +162,19 @@ function addBotMsg(msg) {
     chatLog[0].append(newBotMessage);
     // Scroll to last message
     scrollContents(chatLog[0]);
+}
+
+function handleWitReply(witIntent) {
+    if (witIntent == 'captureObject') {
+        // TODO: get scenario and step
+        var scenario = 1, step = 1;
+        var link = `${GUIaddr}api/controller/getObjLabels?scenario=${scenario}&step=${step}`;
+        console.log(link);
+        const getObjlabels = () => $.get(link)
+        .done(function(){
+            console.log("Scenario: " + scenario + "\t" + "Step: " + step);
+            console.log("Object Labels received!");
+        });
+        getObjlabels();
+    }
 }

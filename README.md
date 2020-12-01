@@ -2,9 +2,11 @@
 SoCoLaBot is a chatbot created as an assistant for the use of the SoCoLa project. It currently guides the user through 2 different scenarios (Object State Prediction & Observation Explanation).
 
 ## Prerequisites
-You will need a `.env` file in the root of your project which contains a (server) Wit AI key and a public/secret keypair for the OBA API:
+You will need a `.env` file in the root of your project which contains a (server) Wit AI key and a public/secret keypair for the FB API:
 ```
 WIT_KEY=
+FB_TOKEN=
+FB_KEY=
 ```
 
 ## Built with

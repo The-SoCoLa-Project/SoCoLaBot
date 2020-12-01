@@ -1,32 +1,35 @@
 process.title = 'node-chat';
+require('dotenv').config();
 // =============================================================================
 // SERVER SIDE CODE
 // =============================================================================
-const express = require('express');
-const ws = require('ws');
-const app = express();
+const express   = require('express');
+const ws        = require('ws');
+const app       = express();
 
 const bodyParser= require('body-parser');
-const methods = require('./methods');
-const httpserver = require('http').createServer(app);
+const methods   = require('./methods');
+const httpserver= require('http').createServer(app);
+// const stringify = require('json-stringify-pretty-compact');
+
+// Check for environment variables
+if (
+    !process.env.WIT_KEY //||
+    // !process.env.FB_TOKEN ||
+    // !process.env.FB_KEY
+) {
+    console.log('❌  Env variables missing'); // eslint-disable-line no-console
+    process.exit(1);
+}
 
 // -------------------------------------------------
 // WebSocket server
 // -------------------------------------------------
 // set up headless websocket server that prints any
 // event that come in
+const attachMessageHandler = require('./message-handler');
 
 const wsServer = new ws.Server({port:3000});
-// invoked whenever a new client connects
-wsServer.on('connection', socket => {
-    var userMsg;
-    socket.on('message', message => {
-        userMsg = message;
-        console.log("WS user said: ", userMsg)
-        socket.send(`You said: ${userMsg}`);
-    });
-});
-
 
 // upgrade process
 // https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
@@ -35,18 +38,17 @@ wsServer.on('connection', socket => {
 //         wsServer.emit('connection', socket, req);
 //     })
 // });
-
-
 // function sendEvent(eventData) {
 //     server.clients.forEach(client => {
 //         client.send(JSON.stringify(eventData));
 //     });
 // }
+attachMessageHandler(wsServer);
 // -------------------------------------------------
 
 const port = process.env.port || 80;
 // const hostname = '139.91.183.118';
-const hostname = '192.168.1.6';
+const hostname = '192.168.1.3';
 
 app.listen(port, hostname, () => {
     console.log(`Chatbot Server is listening at     http://${hostname}:${port}`);
@@ -64,7 +66,6 @@ const bot = new methods('EAAIidVs6fVYBAGGBrywkRKKXKyG8F2UGP2y6sZA7dcO29whI1HVjR6
 // this will let us get the data from a POST sent by FB
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
 
 app.get('/', (req, res, next) => {
     if(req.query['hub.mode'] == 'subscribe' && req.query['hub.verify_token'] == fb_token) {
