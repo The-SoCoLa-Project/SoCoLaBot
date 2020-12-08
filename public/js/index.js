@@ -5,7 +5,7 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
-const GUIaddr = 'http://192.168.1.3:443/';
+const GUIaddr = 'http://192.168.1.6:443/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -15,40 +15,52 @@ function scrollContents(container) {
     container.scrollTop = container.scrollHeight;
 }
 
-var responseMsg = "";
 
 /***********************
  * WebSocket Setup
  */
-const socket = new WebSocket("ws://192.168.1.3:3000");
+const socket = new WebSocket("ws://192.168.1.6:3000");
+
+var socketJSONmsg = {
+    type: "types",
+    text: "msgSent",
+    sender: "botORserverORgui"
+}
+// The sender will always be the Chatbot from here
+function setupJSONmsg(type, text) {
+    socketJSONmsg.type  = type;
+    socketJSONmsg.sender= "Chatbot",
+    socketJSONmsg.text  = text;
+}
 
 socket.onopen = () => {
-    console.log("Connected to WS Server");
+    console.log("[BOT] Connected to WS Server");
 }
 socket.onmessage = (event) => {
-    var botMsg = event.data;
-    // console.log("event.data.value: "+event.data.value)
-    if (event.data.value) {
-        botMsg = event.data.value;
+    var msg = JSON.parse(event.data);
+    var botMsg = msg.text;
+    // if (event.data.value) {
+    //     botMsg = event.data.value;
+    // }
+    if (msg.sender == "Server" && msg.type == "botMessage") {
+        addBotMsg(botMsg);
     }
-    // console.log("Message from server: ", botMsg);
-    addBotMsg(botMsg);
-    handleWitReply(botMsg);
 }
 socket.onclose = (event) => {
     if (event.wasClean) {
-        console.log(`[CLOSE] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+        console.log(`[WS BOT CLOSE] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
     } else {
         // e.g. server process killed or network down
         // event.code is usually 1006 in this case
-        console.error(`[CLOSE ERROR] Connection died, code=${event.code}`);
+        console.error(`[WS BOT CLOSE ERROR] Connection died, code=${event.code}`);
     }
 }
 socket.onerror = (error) => {
-    console.error(`[ERROR] ${error.message}`);
+    console.error(`[WS BOT ERROR] ${error.message}`);
 }
 const sendMsg = (msgToSend) => {
-    socket.send(msgToSend);
+    setupJSONmsg("botMessage", msgToSend);
+    socket.send(JSON.stringify(socketJSONmsg));
 }
 
 /*****************************************************************************

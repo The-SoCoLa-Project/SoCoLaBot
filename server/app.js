@@ -29,7 +29,10 @@ if (
 // event that come in
 const attachMessageHandler = require('./message-handler');
 
-const wsServer = new ws.Server({port:3000});
+const wsServer = new ws.Server({
+    port:3000, 
+    clientTracking: true
+});
 
 // upgrade process
 // https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
@@ -38,17 +41,17 @@ const wsServer = new ws.Server({port:3000});
 //         wsServer.emit('connection', socket, req);
 //     })
 // });
-// function sendEvent(eventData) {
-//     server.clients.forEach(client => {
-//         client.send(JSON.stringify(eventData));
-//     });
-// }
+
+
+// listen to messages sent by the user 
+// get replies from wit.ai
+// and trigger the appropriate actions (event sent to GUI)
 attachMessageHandler(wsServer);
 // -------------------------------------------------
 
 const port = process.env.port || 80;
 // const hostname = '139.91.183.118';
-const hostname = '192.168.1.3';
+const hostname = '192.168.1.6';
 
 app.listen(port, hostname, () => {
     console.log(`Chatbot Server is listening at     http://${hostname}:${port}`);
