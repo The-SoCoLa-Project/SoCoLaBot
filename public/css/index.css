@@ -119,6 +119,44 @@ p, form {
 }
 
 /***************************************************/
+/* QUICK REPLIES BUTTONS  */
+/***************************************************/
+.quick-replies_wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.quick-reply__btn {
+    /* outline: none; */
+    width: fit-content;
+    padding: 0 20px;
+    font-size: 0.9em;
+    line-height: 2.1em;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transition: background 0.5s, color 0.5s;
+    color: rgb(236, 240, 241);
+    background-color: rgb(83, 117, 150); /*#537596*/
+    border: 1px solid #333C44 !important;
+    box-shadow: 0 3px #333C44;
+    border-radius: 5px;
+}
+
+.quick-reply__btn:hover, .quick-reply__btn:active, .quick-reply__btn:focus {
+    /* color: rgb(236, 240, 241) !important; */
+    background-color: rgb(112, 144, 176) !important;
+    outline: none;
+}
+
+.quick-reply__btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px #333C44;
+}
+
+/***************************************************/
 /* CHAT INPUT  */
 /***************************************************/
 .chat-input-area {

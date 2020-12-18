@@ -23,7 +23,7 @@ module.exports = function(wsServer) {
     var inProgress_captureAction = false;
     var inProgress_captureObject = false;
 
-    // types:   botMessage, guiMessage, setupScenarioStep
+    // types:   botMessage, guiMessage, setupScenarioStep, quickReplies
     // sender:  Server, Chatbot, GUI
     var socketJSONmsg = {
         type: "types",  
@@ -71,6 +71,9 @@ module.exports = function(wsServer) {
         const scenarioSetupMsg = "This is the start of a new session. So tell me, are your actions going to be hidden?";
         setupSocketMsg("botMessage", scenarioSetupMsg);
         socket.send(JSON.stringify(socketJSONmsg));
+        // TODO: testing quick replies, separated by ; delimiter
+        setupSocketMsg("quickReplies", "Yes;No");
+        sendToClients(socketJSONmsg);
         sendMsgToWIT(scenarioSetupMsg);
 
         var userMsg, wit_Reply, botReply,
@@ -89,7 +92,18 @@ module.exports = function(wsServer) {
                 }
             });
             if (msgFromClient.sender == "Chatbot") {
-                sendMsgToWIT(msgFromClient.text);
+                if (msgFromClient.type == "quickReplies") {
+                    console.log(`Client:${msgFromClient.sender} said ${msgFromClient.text}`);
+                    if (listeningForScenarioSetup && msgFromClient.text == "Yes") {
+                        sendMsgToWIT("hidden action");
+                    } else if (listeningForScenarioSetup && msgFromClient.text == "No") {
+                        sendMsgToWIT("visible action");
+                    } else {
+                        // TODO: handle this
+                    }
+                } else {
+                    sendMsgToWIT(msgFromClient.text);
+                }
             } else if (msgFromClient.sender == "GUI") {
                 console.log("GUI TOLD ME: "+msgFromClient.text);
                 var guiMsg = msgFromClient.text;
@@ -106,16 +120,18 @@ module.exports = function(wsServer) {
                             botMsg1 += " You can see the observed labels in the Vision window.";
                             botMsg2  = "Now you can make some actions hidden from me and when you are ready tell me to take a new screenshot of the object.";
                         }
-                        
+                        inProgress_captureObject = false;
                     } else {
                         if (scenario == 1) {
                             botMsg1 = "Your action has been captured! " 
                                     + "The observed labels can be seen in the Vision window and the inferred ones in the GG window. "
                                     + "The predicted state of your object is displayed by the Reasoner.";
+                            inProgress_captureAction = false;
                         } else {
                             botMsg1 = "Object captured! "
                                     + "You can see the observed labels in the Vision window. "
                                     + "The reasoner now shows you its prediction of the actions that you might have made with the object.";
+                            inProgress_captureObject = false;
                         }
                         botMsg2 = "The session is finished. Do you want to start a new one?";
                     }
@@ -145,6 +161,9 @@ module.exports = function(wsServer) {
                 }) .catch(console.error);
         }
 
+        var captActionBotMsg = "Alright, I'm recording your action. Please wait a few seconds for the results...";
+        var captObjBotMsg    = "Alright, I'm taking a screenshot of the object. Please wait a few seconds for the results...";
+
         function handleChatbotReply(witResponse) {
             wit_Reply = witResponse;
 
@@ -153,20 +172,23 @@ module.exports = function(wsServer) {
                 console.log("[wit] no intent matched!")
                 log.ERROR = (`No intent matched input "${userMsg}"`);
                 botReply = "I'm not sure I understand, can you try again?";
+                botReply2= "If you need help type \"help\". If you want to start over you can ask me to start a new session by refreshing the page.";
                 
                 setupSocketMsg("botMessage", botReply);
+                sendToClients(socketJSONmsg);
+                setupSocketMsg("botMessage", botReply2);
                 sendToClients(socketJSONmsg);
                 return;
             }
             // if no entities have been found
             if (isEmptyObject(witResponse.entities)) {
-                console.log("[wit] no entities found!");
+                console.debug("[wit] no entities found!");
             } else { 
                 wit_Entities = witResponse.entities; 
                 wit_EntityNames = Object.keys(witResponse.entities);
             }
             if (isEmptyObject(witResponse.traits)) {
-                console.log("[wit] no traits found!");
+                console.debug("[wit] no traits found!");
             } else { 
                 wit_Traits = witResponse.traits; 
                 wit_TraitNames = Object.keys(witResponse.traits);
@@ -188,17 +210,22 @@ module.exports = function(wsServer) {
             botReply = ("triggered intent: ", wit_IntentName);  // TO BE DELETED
             //----------------------------------------------------
             // Handle bot replies according to triggered intents
+            // ---> captureObject Intent
             if (wit_IntentName == 'captureObject') {
+                if (scenario == 1 && step == 2) {
+                    botReply = "You have already captured the object. Your next step is to capture one or more actions on the object.";
+                    setupSocketMsg("botMessage", botReply);
+                    sendToClients(socketJSONmsg);
+                    return;
+                } else { inProgress_captureObject = true; }
                 if (listeningForScenarioSetup) {
                     botReply = "I'm still waiting for you to specify if the actions are going to be hidden or visible.";
                     setupSocketMsg('botMessage', botReply);
                     sendToClients(socketJSONmsg);
                     return;
                 }
-                if ((scenario == 1 & step == 1)) {
-                    inProgress_captureObject = true;
-                }
-                botReply = "Alright I'm taking a screenshot of the object. Please wait a few seconds for the results...";
+                botReply = captObjBotMsg;
+            // ---> captureAction intent
             } else if (wit_IntentName == 'captureAction') {
                 if (listeningForScenarioSetup) {
                     botReply = "I'm still waiting for you to specify if the actions are going to be hidden or visible.";
@@ -206,14 +233,20 @@ module.exports = function(wsServer) {
                     sendToClients(socketJSONmsg);
                     return;
                 }
-                if (scenario == 2) {
+                if (scenario == 1 && inProgress_captureObject) {
+                    botReply = "Capturing of the object and its state has not finished yet.";
+                    setupSocketMsg('botMessage', botReply);
+                    sendToClients(socketJSONmsg);
+                    return;
+                } else if (scenario == 2) {
                     setupSocketMsg("botMessage", "I cannot capture actions while in the hidden actions scenario. You can start a new session and specify the visible actions scenario.");
                     sendToClients(socketJSONmsg);
                     return;
-                } else if ((scenario == 1 & step == 2)) {
-                    inProgress_captureAction = true;
+                } else { 
+                    inProgress_captureAction = true; 
+                    botReply = captActionBotMsg;
                 }
-                botReply = "Alright, I'm recording your action. Please wait a few seconds for the results...";
+            // ---> help intent
             } else if (wit_IntentName == 'help') {
                 if (!scenario) {
                     botReply = "You haven't specified a scenario yet. Tell me if your action will be visible or hidden from me.";
@@ -232,6 +265,7 @@ module.exports = function(wsServer) {
                         botReply += "\nThe next step is for me to capture the state of the object after the actions that occurred.";
                     }
                 }
+            // ---> setActionVisibility intent
             } else if (wit_IntentName == 'setActionVisibility') {
                 // set scenario and stop listening for any change
                 // TODO: change this so it can be changed anytime
@@ -259,22 +293,43 @@ module.exports = function(wsServer) {
                     botReply = "The first step is to capture an object. Tell me when you are ready";
                 } else {
                     botReply = "You can only change the running scenario at the start of the session for now. You can refresh the page for a new session.";
-                }                
+                }       
+            // ---> askForActionVisibility intent         
             } else if (wit_IntentName == 'askActionVisibility') {
                 // this is the step where the bot asks for the scenario setup
                 // when this is triggered, 
                 // we will set the boolean listening for the scenario setup
-                setupSocketMsg("botMessage", "I'm listening for scenario setup...");
-                socket.send(JSON.stringify(socketJSONmsg)); 
+                // setupSocketMsg("botMessage", "I'm listening for scenario setup...");
+                // socket.send(JSON.stringify(socketJSONmsg)); 
                 listeningForScenarioSetup = true;
                 return;
+            // ---> ready intent
+            // when the user says he's ready, what do we do?
+            } else if (wit_IntentName == 'ready') {
+                if (wit_EntityNames.includes('negation:negation')) {
+                    botReply = "OK, no hurry, I'm ready when you are. If you require help, you can ask me for it.";
+                    setupSocketMsg("botMessage", botReply);
+                    sendToClients(socketJSONmsg);
+                    return;
+                }
+                if (scenario == 1 && step == 2) {   // when ready to capture action
+                    inProgress_captureAction = true;
+                    botReply = captActionBotMsg;
+                } else if (step == 1 || (scenario == 2 && step == 2)) {
+                    inProgress_captureObject = true;
+                    botReply = captObjBotMsg;
+                }
+            
+            // ---> newSession intent
             } else if (wit_IntentName == 'newSession') {
                 botReply = "Refreshing the page...";
+            // ---> greeting intent
             } else if (wit_IntentName == 'greeting') { 
                 if (wit_TraitNames.length && 
                     wit_TraitNames.includes('wit$greetings')) {
                         botReply = "Hello there!";
                 }
+            // ---> bye intent
             } else if (wit_IntentName == 'bye') {
                 if (wit_TraitNames.length && 
                     wit_TraitNames.includes('wit$bye')) {

@@ -5,7 +5,7 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
-const GUIaddr = 'http://192.168.1.6:443/';
+const GUIaddr = 'http://192.168.1.7:443/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -13,13 +13,14 @@ const GUIaddr = 'http://192.168.1.6:443/';
 */
 function scrollContents(container) {
     container.scrollTop = container.scrollHeight;
+    container.style.paddingBottom = "5px";
 }
 
 
 /***********************
  * WebSocket Setup
  */
-const socket = new WebSocket("ws://192.168.1.6:3000");
+const socket = new WebSocket("ws://192.168.1.7:3000");
 
 var socketJSONmsg = {
     type: "types",
@@ -45,6 +46,12 @@ socket.onmessage = (event) => {
     if (msg.sender == "Server" && msg.type == "botMessage") {
         addBotMsg(botMsg);
     }
+    if (msg.sender == "Server" && msg.type == "quickReplies") {
+        // msg.text is a string, we should convert it to array for the function to work
+        var repliesArray = msg.text.split(";");
+        addQuickReplies(repliesArray);
+        addEventListener_toTheWrapper(document.querySelectorAll('.quick-replies_wrapper'));
+    }
 }
 socket.onclose = (event) => {
     if (event.wasClean) {
@@ -58,8 +65,8 @@ socket.onclose = (event) => {
 socket.onerror = (error) => {
     console.error(`[WS BOT ERROR] ${error.message}`);
 }
-const sendMsg = (msgToSend) => {
-    setupJSONmsg("botMessage", msgToSend);
+const sendMsg = (msgType,msgToSend) => {
+    setupJSONmsg(msgType, msgToSend);
     socket.send(JSON.stringify(socketJSONmsg));
 }
 
@@ -139,7 +146,7 @@ chatForm[0].addEventListener('submit', function(e) {
     addUserMsg(chatInputField[0].value);
 
     // send the usermsg to the server via the websocket
-    sendMsg(chatInputField[0].value);
+    sendMsg("botMessage",chatInputField[0].value);
     // sendUserMsg(chatInputField[0].value);
 
     // receiveUserMsg();
@@ -151,6 +158,55 @@ chatForm[0].addEventListener('submit', function(e) {
     // Clear input
     chatInputField[0].value = '';
 });
+
+/*****************************************************************************
+ * QUICK REPLIES HANDLER
+ * ---> param replies is an array of the button replies to be generated
+ *****************************************************************************/
+function addQuickReplies(replies) {
+    if (Array.isArray(replies)) {
+        // create a div for all the btns/replies
+        var quickRepliesArea = document.createElement('div');
+        quickRepliesArea.className = 'quick-replies_wrapper';
+
+        replies.forEach(replyText => {
+            var replyBtn = document.createElement('button');
+            replyBtn.append(replyText);
+            replyBtn.className = 'quick-reply__btn';
+
+            // Append the btn into the div
+            quickRepliesArea.append(replyBtn);
+        })
+        
+        // Add the quick replies div to the chat log
+        chatLog[0].append(quickRepliesArea);
+        // Scroll to last message
+        scrollContents(chatLog[0]);
+    }
+}
+
+// https://javascript.info/bubbling-and-capturing
+// catch all the events inside the div wrapping the quick-reply buttons
+// the event listener needs to be added AFTER the element has been created
+function addEventListener_toTheWrapper(wrapper) {
+    wrapper[0].addEventListener('click', (event) => {
+        // check if the click was on a button and not the div
+        const isButton = event.target.nodeName === 'BUTTON';
+        if (!isButton) { return; }
+
+        // use JQuery's text function
+        var btnText = $(event.target).text();
+
+        console.log("Button's text: "+btnText);
+
+        addUserMsg(btnText);
+        sendMsg("quickReplies",btnText); 
+        
+        // after the reply is send, remove the whole div
+        $(".quick-replies_wrapper").remove();
+    });
+}
+
 
 
 /*****************************************************************************
@@ -190,3 +246,4 @@ function handleWitReply(witIntent) {
         getObjlabels();
     }
 }
+
