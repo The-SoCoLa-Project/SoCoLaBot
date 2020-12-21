@@ -19,9 +19,10 @@ module.exports = function(wsServer) {
     // bool var, will be used to set when 
     // we will be listening to set the scenario
     // TODO: change the setting so the scenario can be changed anytime, not only at the beginning
-    var listeningForScenarioSetup = true; 
+    var listeningForScenarioSetup= true; 
     var inProgress_captureAction = false;
     var inProgress_captureObject = false;
+    var sessionDone              = false;
 
     // types:   botMessage, guiMessage, setupScenarioStep, quickReplies
     // sender:  Server, Chatbot, GUI
@@ -98,6 +99,10 @@ module.exports = function(wsServer) {
                         sendMsgToWIT("hidden action");
                     } else if (listeningForScenarioSetup && msgFromClient.text == "No") {
                         sendMsgToWIT("visible action");
+                    } else if (sessionDone && msgFromClient.text == "Yes"){
+                        sendMsgToWIT("refresh");
+                    } else if (sessionDone && msgFromClient.text == "No") {
+                        sendMsgToWIT("bye");
                     } else {
                         // TODO: handle this
                     }
@@ -134,12 +139,18 @@ module.exports = function(wsServer) {
                             inProgress_captureObject = false;
                         }
                         botMsg2 = "The session is finished. Do you want to start a new one?";
+                        sessionDone = true;
                     }
                     setupSocketMsg("botMessage", botMsg1);
                     sendToClients(socketJSONmsg);
                     setupSocketMsg("botMessage", botMsg2);
                     sendToClients(socketJSONmsg);
                     step++;
+                    if (sessionDone) {
+                        console.log("----> SESSION DONE");
+                        setupSocketMsg("quickReplies", "Yes;No");
+                        sendToClients(socketJSONmsg);
+                    }
                 }
             }    
         });
@@ -302,6 +313,7 @@ module.exports = function(wsServer) {
                 // setupSocketMsg("botMessage", "I'm listening for scenario setup...");
                 // socket.send(JSON.stringify(socketJSONmsg)); 
                 listeningForScenarioSetup = true;
+                sessionDone = false;
                 return;
             // ---> ready intent
             // when the user says he's ready, what do we do?
@@ -313,11 +325,15 @@ module.exports = function(wsServer) {
                     return;
                 }
                 if (scenario == 1 && step == 2) {   // when ready to capture action
-                    inProgress_captureAction = true;
-                    botReply = captActionBotMsg;
+                    // inProgress_captureAction = true;
+                    // botReply = captActionBotMsg;
+                    sendMsgToWIT("capture action");
+                    return;
                 } else if (step == 1 || (scenario == 2 && step == 2)) {
-                    inProgress_captureObject = true;
-                    botReply = captObjBotMsg;
+                    // inProgress_captureObject = true;
+                    // botReply = captObjBotMsg;
+                    sendMsgToWIT("capture object");
+                    return;
                 }
             
             // ---> newSession intent

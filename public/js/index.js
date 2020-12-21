@@ -112,25 +112,25 @@ function addUserMsg(msg) {
 }
 
 // jquery request to get user msg (if exists) from the Server
-var receiveUserMsg = () => $.get("./api/chatbot/userMsg")
-.fail((err)=>{
-    console.error(err,": Failed to receive user message from chatbot server");
-})
-.done((data)=>{
-    console.log('success');
-    console.log("-->User msg:",data);
-    addUserMsg(data);
-})
+// var receiveUserMsg = () => $.get("./api/chatbot/userMsg")
+// .fail((err)=>{
+//     console.error(err,": Failed to receive user message from chatbot server");
+// })
+// .done((data)=>{
+//     console.log('success');
+//     console.log("-->User msg:",data);
+//     addUserMsg(data);
+// })
 
-var sendUserMsg = (msg) => 
-$.post("./api/chatbot/userMsg", {userMsg: msg})
-.fail((err)=>{
-    console.error(err,": Failed to send the user message!")
-})
-.done((data)=>{
-    console.log("User msg sent successfully!")
-    // TODO: 
-});
+// var sendUserMsg = (msg) => 
+// $.post("./api/chatbot/userMsg", {userMsg: msg})
+// .fail((err)=>{
+//     console.error(err,": Failed to send the user message!")
+// })
+// .done((data)=>{
+//     console.log("User msg sent successfully!")
+//     // TODO: 
+// });
 
 // Handle form submit (clicking on the submit button or pressing Enter)
 chatForm[0].addEventListener('submit', function(e) {
@@ -177,7 +177,6 @@ function addQuickReplies(replies) {
             // Append the btn into the div
             quickRepliesArea.append(replyBtn);
         })
-        
         // Add the quick replies div to the chat log
         chatLog[0].append(quickRepliesArea);
         // Scroll to last message
@@ -213,15 +212,15 @@ function addEventListener_toTheWrapper(wrapper) {
  * CHATBOT MESSAGES/REPLIES
  *****************************************************************************/
 // jquery request to get bot msg from the Server
-var receiveBotMsg = () => $.get("./api/chatbot/getBotMsg")
-.fail((err)=>{
-    console.error(err,": Failed to receive bot message from chatbot server");
-})
-.done((data)=>{
-    console.log('success');
-    console.log("-->Bot msg:",data);
-    addBotMsg(data);
-})
+// var receiveBotMsg = () => $.get("./api/chatbot/getBotMsg")
+// .fail((err)=>{
+//     console.error(err,": Failed to receive bot message from chatbot server");
+// })
+// .done((data)=>{
+//     console.log('success');
+//     console.log("-->Bot msg:",data);
+//     addBotMsg(data);
+// })
 
 // add bot message to UI
 function addBotMsg(msg) {
@@ -232,18 +231,18 @@ function addBotMsg(msg) {
     scrollContents(chatLog[0]);
 }
 
-function handleWitReply(witIntent) {
-    if (witIntent == 'captureObject') {
-        // TODO: get scenario and step
-        var scenario = 1, step = 1;
-        var link = `${GUIaddr}api/controller/getObjLabels?scenario=${scenario}&step=${step}`;
-        console.log(link);
-        const getObjlabels = () => $.get(link)
-        .done(function(){
-            console.log("Scenario: " + scenario + "\t" + "Step: " + step);
-            console.log("Object Labels received!");
-        });
-        getObjlabels();
-    }
-}
+// function handleWitReply(witIntent) {
+//     if (witIntent == 'captureObject') {
+//         // TODO: get scenario and step
+//         var scenario = 1, step = 1;
+//         var link = `${GUIaddr}api/controller/getObjLabels?scenario=${scenario}&step=${step}`;
+//         console.log(link);
+//         const getObjlabels = () => $.get(link)
+//         .done(function(){
+//             console.log("Scenario: " + scenario + "\t" + "Step: " + step);
+//             console.log("Object Labels received!");
+//         });
+//         getObjlabels();
+//     }
+// }
 
