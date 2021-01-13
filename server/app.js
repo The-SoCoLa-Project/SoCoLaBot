@@ -50,8 +50,8 @@ attachMessageHandler(wsServer);
 // -------------------------------------------------
 
 const port = process.env.port || 80;
-// const hostname = '139.91.183.118';
-const hostname = '192.168.1.7';
+const hostname = '139.91.183.118';
+// const hostname = '192.168.1.7';
 
 app.listen(port, hostname, () => {
     console.log(`Chatbot Server is listening at     http://${hostname}:${port}`);

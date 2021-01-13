@@ -5,7 +5,8 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
-const GUIaddr = 'http://192.168.1.7:443/';
+const GUIaddr = 'http://139.91.183.118:443/';
+// const GUIaddr = 'http://192.168.1.7:443/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -20,7 +21,8 @@ function scrollContents(container) {
 /***********************
  * WebSocket Setup
  */
-const socket = new WebSocket("ws://192.168.1.7:3000");
+const socket = new WebSocket("ws://139.91.183.118:3000");
+// const socket = new WebSocket("ws://192.168.1.7:3000");
 
 var socketJSONmsg = {
     type: "types",
