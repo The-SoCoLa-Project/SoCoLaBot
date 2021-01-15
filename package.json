@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "npx nodemon ./server/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "npx npm-force-resolutions"
   },
   "repository": {
     "type": "git",
@@ -29,9 +30,15 @@
     "express": "^4.17.1",
     "http": "0.0.1-security",
     "json-stringify-pretty-compact": "^2.0.0",
-    "node-fetch": "^2.6.1",
     "node-sass": "^4.14.1",
     "node-wit": "^6.0.0",
-    "ws": "^7.4.0"
+    "node-witai-speech": "^1.0.2",
+    "ws": "^7.4.2"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "resolutions": {
+    "node-fetch": "^2.6.1"
   }
 }
