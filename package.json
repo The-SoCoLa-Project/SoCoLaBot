@@ -32,7 +32,7 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "node-sass": "^4.14.1",
     "node-wit": "^6.0.0",
-    "node-witai-speech": "^1.0.2",
+    "witai-speech": "^0.2.0",
     "ws": "^7.4.2"
   },
   "devDependencies": {

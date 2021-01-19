@@ -50,6 +50,19 @@ module.exports = function(wsServer) {
         }
         return true;
     }
+
+    //----------------------------------------------
+    // WIT SPEECH
+    function speechToText(speech2textFile) {
+        var witai_speech = require('witai-speech');
+        
+        witai_speech.ASR({
+            file: './demo.wav', 
+            developer_key: process.env.WIT_KEY,
+            }, function (err, res) {
+                console.log(err, res);
+            });
+    }
     //----------------------------------------------
     // Web Server Socket handling
     wsServer.on('connection', function connection(socket, req, client) {
