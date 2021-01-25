@@ -8,13 +8,10 @@ const ws        = require('ws');
 const app       = express();
 
 const fs        = require('fs');
-// OpenSSL
-const key       = fs.readFileSync("C:\\key-rsa.pem");
-const cert      = fs.readFileSync("C:\\cert.pem");
-
 const bodyParser= require('body-parser');
 const methods   = require('./methods');
 const httpsServer= require('https').createServer({key,cert}, app);
+
 // const stringify = require('json-stringify-pretty-compact');
 
 // Check for environment variables
@@ -27,6 +24,23 @@ if (
     process.exit(1);
 }
 
+const port = process.env.port || 443;
+// const hostname = '139.91.183.118';
+const hostname = '192.168.1.3';
+
+const httpserver= require('https').createServer({
+    key:  fs.readFileSync(__dirname+'/server.key'),
+    cert: fs.readFileSync(__dirname+'/server.cert'),
+    // allow self-signed certs (never use this in production)
+    rejectUnauthorized: false,
+    requestCert: false
+}, app);
+
+// httpserver.listen(port, hostname, () => {
+httpserver.listen(port, hostname, () => {
+    console.log(`Chatbot Server is listening at     https://${hostname}:${port}`);
+    // console.log(`Chatbot Server is listening at     https://localhost:${port}`);
+})
 // -------------------------------------------------
 // WebSocket server
 // -------------------------------------------------
@@ -35,9 +49,9 @@ if (
 const attachMessageHandler = require('./message-handler');
 
 const wsServer = new ws.Server({
-    port:3000, 
-    server: httpsServer,
-    clientTracking: true
+    server: httpserver//,
+    // port:   443//, 
+    // clientTracking: true
 });
 
 // upgrade process
