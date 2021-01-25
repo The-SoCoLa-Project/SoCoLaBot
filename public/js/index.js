@@ -17,12 +17,25 @@ function scrollContents(container) {
     container.style.paddingBottom = "5px";
 }
 
+/**********************************************
+ * Ask browser for permission to use mic
+ */
+function permission_askForMic() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+        console.log('You let me use your mic!')
+    })
+    .catch(function(err) {
+        console.log('No mic for you!')
+    });
+}
 
-/***********************
+/**********************************************
  * WebSocket Setup
  */
-const socket = new WebSocket("ws://139.91.183.118:3000");
-// const socket = new WebSocket("ws://192.168.1.7:3000");
+// const socket = new WebSocket("wss://139.91.183.118:3000");
+const socket = new WebSocket("wss://192.168.1.3");
+// const socket = new WebSocket("wss://localhost:443");
 
 var socketJSONmsg = {
     type: "types",
@@ -37,7 +50,7 @@ function setupJSONmsg(type, text) {
 }
 
 socket.onopen = () => {
-    console.log("[BOT] Connected to WS Server");
+    console.log("[WS BOT] Connected to WS Server");
 }
 socket.onmessage = (event) => {
     var msg = JSON.parse(event.data);
@@ -105,7 +118,7 @@ function getMessageElement(val, isUser) {
 }
 
 // add user message to UI
-function addUserMsg(msg) {
+function addUserMsg(msg) { 
     // Add user's message to the chat log
     var newUserMessage = getMessageElement(msg, true);
     chatLog[0].append(newUserMessage);
@@ -213,17 +226,6 @@ function addEventListener_toTheWrapper(wrapper) {
 /*****************************************************************************
  * CHATBOT MESSAGES/REPLIES
  *****************************************************************************/
-// jquery request to get bot msg from the Server
-// var receiveBotMsg = () => $.get("./api/chatbot/getBotMsg")
-// .fail((err)=>{
-//     console.error(err,": Failed to receive bot message from chatbot server");
-// })
-// .done((data)=>{
-//     console.log('success');
-//     console.log("-->Bot msg:",data);
-//     addBotMsg(data);
-// })
-
 // add bot message to UI
 function addBotMsg(msg) {
     // Add user's message to the chat log

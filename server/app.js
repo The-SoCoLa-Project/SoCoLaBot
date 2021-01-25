@@ -7,9 +7,10 @@ const express   = require('express');
 const ws        = require('ws');
 const app       = express();
 
+const fs        = require('fs');
 const bodyParser= require('body-parser');
 const methods   = require('./methods');
-const httpserver= require('http').createServer(app);
+
 // const stringify = require('json-stringify-pretty-compact');
 
 // Check for environment variables
@@ -22,6 +23,23 @@ if (
     process.exit(1);
 }
 
+const port = process.env.port || 443;
+// const hostname = '139.91.183.118';
+const hostname = '192.168.1.3';
+
+const httpserver= require('https').createServer({
+    key:  fs.readFileSync(__dirname+'/server.key'),
+    cert: fs.readFileSync(__dirname+'/server.cert'),
+    // allow self-signed certs (never use this in production)
+    rejectUnauthorized: false,
+    requestCert: false
+}, app);
+
+// httpserver.listen(port, hostname, () => {
+httpserver.listen(port, hostname, () => {
+    console.log(`Chatbot Server is listening at     https://${hostname}:${port}`);
+    // console.log(`Chatbot Server is listening at     https://localhost:${port}`);
+})
 // -------------------------------------------------
 // WebSocket server
 // -------------------------------------------------
@@ -30,8 +48,9 @@ if (
 const attachMessageHandler = require('./message-handler');
 
 const wsServer = new ws.Server({
-    port:3000, 
-    clientTracking: true
+    server: httpserver//,
+    // port:   443//, 
+    // clientTracking: true
 });
 
 // upgrade process
@@ -49,13 +68,6 @@ const wsServer = new ws.Server({
 attachMessageHandler(wsServer);
 // -------------------------------------------------
 
-const port = process.env.port || 80;
-const hostname = '139.91.183.118';
-// const hostname = '192.168.1.7';
-
-app.listen(port, hostname, () => {
-    console.log(`Chatbot Server is listening at     http://${hostname}:${port}`);
-})
 
 // all files inside public are static and available to the frontend
 app.use(express.static('public'));
