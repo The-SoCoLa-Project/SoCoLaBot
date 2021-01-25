@@ -28,12 +28,13 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "fs": "0.0.1-security",
     "http": "0.0.1-security",
     "https": "^1.0.0",
     "json-stringify-pretty-compact": "^2.0.0",
     "node-sass": "^4.14.1",
     "node-wit": "^6.0.0",
-    "node-witai-speech": "^1.0.2",
+    "witai-speech": "^0.2.0",
     "ws": "^7.4.2"
   },
   "devDependencies": {

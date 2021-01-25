@@ -5,8 +5,8 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
-const GUIaddr = 'http://139.91.183.118:443/';
-// const GUIaddr = 'http://192.168.1.7:443/';
+// const GUIaddr = 'http://139.91.183.118:443/';
+const GUIaddr = 'https://192.168.1.3:443/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -16,6 +16,49 @@ function scrollContents(container) {
     container.scrollTop = container.scrollHeight;
     container.style.paddingBottom = "5px";
 }
+
+
+/***********************
+ * Speech Recognition
+ */
+// Speech recognition interface is an object of the browser’s window. 
+// In Chrome: webkitSpeechRecognition, Firefox: SpeechRecognition
+const SpeechRecognition     = window.SpeechRecognition || window.webkitSpeechRecognition;
+// var SpeechGrammarList       = SpeechGrammarList || webkitSpeechGrammarList
+var SpeechRecognitionEvent  = SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent
+const recognition = new SpeechRecognition();
+recognition.lang = 'en-US';
+// false for just final results
+recognition.interimResults = false;
+// true for continuous results captured
+// false for single result each time recognition is started
+recognition.continuous = true;
+
+recognition.onresult = function(event) {
+    console.log("-------RECOGNITION RESULT--------")
+    if (event.results.length > 0) {
+        // the transcript will provide the text output 
+        // after the speech recognition service has stopped
+        var speech = event.results[0][0].transcript;
+        console.log(speech);
+        alert(speech);
+    }
+    
+    // let last = e.results.length - 1;
+    // let text = e.results[last][0].transcript;
+
+    // console.log('Confidence: ' + e.results[0][0].confidence);
+    // // synthVoice("Hello");
+    // addUserMsg(speech);
+}
+
+function synthVoice(text) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance();
+    utterance.text = text;
+    synth.speak(utterance);
+}
+
 
 /**********************************************
  * Ask browser for permission to use mic
@@ -30,12 +73,13 @@ function permission_askForMic() {
     });
 }
 
+
 /**********************************************
  * WebSocket Setup
  */
+
 // const socket = new WebSocket("wss://139.91.183.118:3000");
 const socket = new WebSocket("wss://192.168.1.3");
-// const socket = new WebSocket("wss://localhost:443");
 
 var socketJSONmsg = {
     type: "types",
@@ -50,7 +94,8 @@ function setupJSONmsg(type, text) {
 }
 
 socket.onopen = () => {
-    console.log("[WS BOT] Connected to WS Server");
+    console.log("[BOT] Connected to WS Server");
+    recognition.start();
 }
 socket.onmessage = (event) => {
     var msg = JSON.parse(event.data);
