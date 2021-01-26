@@ -5,8 +5,10 @@ var chatLog = document.querySelectorAll('.chat-log');
 // Global loading indicator
 var loading = false;
 
-// const GUIaddr = 'http://139.91.183.118:443/';
-const GUIaddr = 'https://192.168.1.3:443/';
+var quickReplies_btnActive = false;
+
+// const GUIaddr = 'http://139.91.183.118:80/';
+const GUIaddr = 'https://192.168.1.4:80/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -49,6 +51,14 @@ recognition.onresult = function(e) {
     // // synthVoice("Hello");
     addUserMsg(speech);
     // send the usermsg to the server via the websocket
+    if (quickReplies_btnActive) {
+        if (speech.toUpperCase() == "YES" || speech.toUpperCase() == "NO") {
+            sendMsg("quickReplies",speech)
+            $(".quick-replies_wrapper").remove();
+            quickReplies_btnActive = false;
+            return;
+        } 
+    } 
     sendMsg("botMessage",speech);
 }
 
@@ -87,7 +97,7 @@ function permission_askForMic() {
  */
 
 // const socket = new WebSocket("wss://139.91.183.118:3000");
-const socket = new WebSocket("wss://192.168.1.3");
+const socket = new WebSocket("wss://192.168.1.4");
 
 var socketJSONmsg = {
     type: "types",
@@ -186,21 +196,30 @@ function addUserMsg(msg) {
 chatForm[0].addEventListener('submit', function(e) {
     e.preventDefault();
 
+    var text = chatInputField[0].value;
+
     // If reply is loading, wait
     if (loading) { return false; }
 
     // Catch empty messages
-    if (!chatInputField[0].value) { return false; }
+    if (!text) { return false; }
 
     // Add user's message to the chat log
-    addUserMsg(chatInputField[0].value);
-
-    // send the usermsg to the server via the websocket
-    sendMsg("botMessage",chatInputField[0].value);
-    // sendUserMsg(chatInputField[0].value);
+    addUserMsg(text);
 
     // Clear input
     chatInputField[0].value = '';
+
+    if (quickReplies_btnActive) {
+        if (text.toUpperCase() == "YES" || text.toUpperCase() == "NO") {
+            sendMsg("quickReplies",text)
+            $(".quick-replies_wrapper").remove();
+            quickReplies_btnActive = false;
+            return;
+        }
+    } 
+    // send the usermsg to the server via the websocket
+    sendMsg("botMessage",text);
 });
 
 /*****************************************************************************
@@ -225,6 +244,8 @@ function addQuickReplies(replies) {
         chatLog[0].append(quickRepliesArea);
         // Scroll to last message
         scrollContents(chatLog[0]);
+
+        quickReplies_btnActive = true;
     }
 }
 

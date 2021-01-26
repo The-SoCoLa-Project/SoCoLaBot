@@ -108,13 +108,13 @@ module.exports = function(wsServer) {
             if (msgFromClient.sender == "Chatbot") {
                 if (msgFromClient.type == "quickReplies") {
                     console.log(`Client:${msgFromClient.sender} said ${msgFromClient.text}`);
-                    if (listeningForScenarioSetup && msgFromClient.text == "Yes") {
+                    if (listeningForScenarioSetup && msgFromClient.text.toUpperCase() == "YES") {
                         sendMsgToWIT("hidden action");
-                    } else if (listeningForScenarioSetup && msgFromClient.text == "No") {
+                    } else if (listeningForScenarioSetup && msgFromClient.text.toUpperCase() == "NO") {
                         sendMsgToWIT("visible action");
-                    } else if (sessionDone && msgFromClient.text == "Yes"){
+                    } else if (sessionDone && msgFromClient.text.toUpperCase() == "YES"){
                         sendMsgToWIT("refresh");
-                    } else if (sessionDone && msgFromClient.text == "No") {
+                    } else if (sessionDone && msgFromClient.text.toUpperCase() == "NO") {
                         sendMsgToWIT("bye");
                     } else {
                         // TODO: handle this
