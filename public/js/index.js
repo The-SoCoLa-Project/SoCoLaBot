@@ -34,22 +34,30 @@ recognition.interimResults = false;
 // false for single result each time recognition is started
 recognition.continuous = true;
 
-recognition.onresult = function(event) {
-    console.log("-------RECOGNITION RESULT--------")
-    if (event.results.length > 0) {
+recognition.onresult = function(e) {
+    console.log("-------SPEECH RECOGNITION RESULT--------")
+    if (e.results.length > 0) {
         // the transcript will provide the text output 
         // after the speech recognition service has stopped
-        var speech = event.results[0][0].transcript;
+        var last    = e.results.length - 1;
+        var speech  = e.results[last][0].transcript;
+        // var speech = event.results[0][0].transcript;
         console.log(speech);
-        alert(speech);
     }
-    
-    // let last = e.results.length - 1;
-    // let text = e.results[last][0].transcript;
 
-    // console.log('Confidence: ' + e.results[0][0].confidence);
+    // console.log('Confidence: ' + event.results[0][0].confidence);
     // // synthVoice("Hello");
-    // addUserMsg(speech);
+    addUserMsg(speech);
+    // send the usermsg to the server via the websocket
+    sendMsg("botMessage",speech);
+}
+
+recognition.onspeechend = function() {
+    recognition.stop();
+    console.log('speech rec stopped')
+}
+recognition.onerror = function(event) {
+    console.error('Error occurred in recognition: ' + event.error);
 }
 
 function synthVoice(text) {
@@ -95,6 +103,7 @@ function setupJSONmsg(type, text) {
 
 socket.onopen = () => {
     console.log("[BOT] Connected to WS Server");
+    permission_askForMic();
     recognition.start();
 }
 socket.onmessage = (event) => {
@@ -112,6 +121,8 @@ socket.onmessage = (event) => {
         addQuickReplies(repliesArray);
         addEventListener_toTheWrapper(document.querySelectorAll('.quick-replies_wrapper'));
     }
+    // after receiving msg from bot, listen for new user input
+    // recognition.start();
 }
 socket.onclose = (event) => {
     if (event.wasClean) {
@@ -171,27 +182,6 @@ function addUserMsg(msg) {
     scrollContents(chatLog[0]);
 }
 
-// jquery request to get user msg (if exists) from the Server
-// var receiveUserMsg = () => $.get("./api/chatbot/userMsg")
-// .fail((err)=>{
-//     console.error(err,": Failed to receive user message from chatbot server");
-// })
-// .done((data)=>{
-//     console.log('success');
-//     console.log("-->User msg:",data);
-//     addUserMsg(data);
-// })
-
-// var sendUserMsg = (msg) => 
-// $.post("./api/chatbot/userMsg", {userMsg: msg})
-// .fail((err)=>{
-//     console.error(err,": Failed to send the user message!")
-// })
-// .done((data)=>{
-//     console.log("User msg sent successfully!")
-//     // TODO: 
-// });
-
 // Handle form submit (clicking on the submit button or pressing Enter)
 chatForm[0].addEventListener('submit', function(e) {
     e.preventDefault();
@@ -208,12 +198,6 @@ chatForm[0].addEventListener('submit', function(e) {
     // send the usermsg to the server via the websocket
     sendMsg("botMessage",chatInputField[0].value);
     // sendUserMsg(chatInputField[0].value);
-
-    // receiveUserMsg();
-    // receiveBotMsg();
-
-    // Get the reply from wit.ai
-    // getReply(chatInputField[0].value);
 
     // Clear input
     chatInputField[0].value = '';

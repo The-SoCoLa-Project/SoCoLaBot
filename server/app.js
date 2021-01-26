@@ -10,7 +10,6 @@ const app       = express();
 const fs        = require('fs');
 const bodyParser= require('body-parser');
 const methods   = require('./methods');
-const httpsServer= require('https').createServer({key,cert}, app);
 
 // const stringify = require('json-stringify-pretty-compact');
 
@@ -68,14 +67,6 @@ const wsServer = new ws.Server({
 // and trigger the appropriate actions (event sent to GUI)
 attachMessageHandler(wsServer);
 // -------------------------------------------------
-
-const port = process.env.port || 80;
-// const hostname = '139.91.183.118';
-const hostname = '192.168.1.3';
-
-httpsServer.listen(port, hostname, () => {
-    console.log(`Chatbot Server is listening at     https://${hostname}:${port}`);
-})
 
 // all files inside public are static and available to the frontend
 app.use(express.static('public'));
