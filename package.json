@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/NenaBas/Chatbot-Service#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -35,7 +36,7 @@
     "node-sass": "^4.14.1",
     "node-wit": "^6.0.0",
     "witai-speech": "^0.2.0",
-    "ws": "^7.4.2"
+    "ws": "^7.4.3"
   },
   "devDependencies": {
     "node-fetch": "^2.6.1"

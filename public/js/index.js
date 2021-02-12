@@ -7,8 +7,8 @@ var loading = false;
 
 var quickReplies_btnActive = false;
 
-// const GUIaddr = 'http://139.91.183.118:80/';
-const GUIaddr = 'https://192.168.1.4:80/';
+// const GUIaddr = 'https://139.91.183.118:443/';
+const GUIaddr = 'https://192.168.1.2:443/';
 
 /**
  * Scrolls the contents of a container to the bottom
@@ -96,8 +96,8 @@ function permission_askForMic() {
  * WebSocket Setup
  */
 
-// const socket = new WebSocket("wss://139.91.183.118:3000");
-const socket = new WebSocket("wss://192.168.1.4");
+// const socket = new WebSocket("wss://139.91.183.118:8443");
+const socket = new WebSocket("wss://192.168.1.7:8443");
 
 var socketJSONmsg = {
     type: "types",

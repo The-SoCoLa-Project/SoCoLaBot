@@ -9,7 +9,8 @@ const app       = express();
 
 const fs        = require('fs');
 const bodyParser= require('body-parser');
-const methods   = require('./methods');
+// const methods   = require('./methods');
+const axios     = require('axios');
 
 // const stringify = require('json-stringify-pretty-compact');
 
@@ -23,13 +24,13 @@ if (
     process.exit(1);
 }
 
-const port = process.env.port || 443;
+const port = process.env.port || 8443;
 // const hostname = '139.91.183.118';
-const hostname = '192.168.1.4';
+const hostname = '192.168.1.7';
 
 const httpserver= require('https').createServer({
     key:  fs.readFileSync(__dirname+'/server.key'),
-    cert: fs.readFileSync(__dirname+'/server.cert'),
+    cert: fs.readFileSync(__dirname+'/server.cer'),
     // allow self-signed certs (never use this in production)
     rejectUnauthorized: false,
     requestCert: false
@@ -46,6 +47,7 @@ httpserver.listen(port, hostname, () => {
 // set up headless websocket server that prints any
 // event that come in
 const attachMessageHandler = require('./message-handler');
+const { json } = require('body-parser');
 
 const wsServer = new ws.Server({
     server: httpserver//,
@@ -72,9 +74,12 @@ attachMessageHandler(wsServer);
 app.use(express.static('public'));
 
 // WIT STARTING POINT
-const fb_token = 'abc12345'
-const bot = new methods('EAAIidVs6fVYBAGGBrywkRKKXKyG8F2UGP2y6sZA7dcO29whI1HVjR6PrOxGzXJnDFbCZBMwE7nrnWEbzqsWnoHS8ZAqzaHrVD27BxdO1qZBlvPUvbtC6AZBRIRlGkfOPZAdHn3mwhfDAWRu5yUGrdvIjfnGrBNxo189seRG9UsuwZDZD')
+// const fb_token = 'abc12345'
+// const bot = new methods('EAAIidVs6fVYBAGGBrywkRKKXKyG8F2UGP2y6sZA7dcO29whI1HVjR6PrOxGzXJnDFbCZBMwE7nrnWEbzqsWnoHS8ZAqzaHrVD27BxdO1qZBlvPUvbtC6AZBRIRlGkfOPZAdHn3mwhfDAWRu5yUGrdvIjfnGrBNxo189seRG9UsuwZDZD')
 
+// -------------------------------------------------
+// Facebook connection config
+// -------------------------------------------------
 // Configuring body parser middleware
 // this will let us get the data from a POST sent by FB
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -131,24 +136,62 @@ router.route('/chatbot')
 
 //// on routes that end in /chatbot/getUserMsg
 // --------------------------------------------------------------------------------------------
-router.route('/chatbot/userMsg')
-// (accessed at GET http://localhost:80/api/chatbot/getUserMsg)
+router.route('/chatbot/updateObjects')
 .get((req, res) => {
-    res.send("got user msg");
-})
-.post((req, res) => {
-    console.log("User said: ", req.body.userMsg);
+    var data = fs.readFileSync(__dirname+'/json/actionObject50shorted.json'); 
+    var actionObject50shorted = JSON.parse(data);
+
+    var actionNames = Object.keys(actionObject50shorted);
+    console.log(actionNames);
+
+    actionNames.forEach(action => {
+        let objects = actionObject50shorted[action];
+        // console.log(`${action} ---> ${objects}`);
+    });
+
+
+    //////// HTTP Requests with axios
+    async function updateWITentity(entityName, arrayOfKeywords) {
+        // update the list of keywords of an entity
+        const configRequest = {
+            method: 'put',
+            url: `https://api.wit.ai/entities/${entityName}?v=20210209`,
+            headers: {
+                "Authorization": `Bearer ${process.env.WIT_KEY}`,
+                "Content-Type": "application/json"
+            },
+            data: {
+                name: entityName,
+                roles: [entityName],
+                keywords: []
+            }
+        }
+        arrayOfKeywords.forEach(newKeyword => {
+            configRequest.data.keywords.push({"keyword": newKeyword, "synonyms": [newKeyword]});
+        });
+        
+        // res.send(JSON.stringify(configRequest,null,2));
+
+        let result = await axios(configRequest);
+
+        console.log(result.data);   //DEBUG
+    }
+
+    try {
+        updateWITentity("action",actionNames);
+        actionNames.forEach(action => {
+            let objects = actionObject50shorted[action];
+            console.log(`${action} ---> ${objects}`);
+            // updateWITentity("object",objects);
+        });
+    } catch (error) {
+        console.error(error);
+    }
+
+
+    // res.send(JSON.stringify(actionObject50shorted,2));
 });
 
-//// on routes that end in /chatbot/getBotMsg
-// --------------------------------------------------------------------------------------------
-router.route('/chatbot/getBotMsg')
-// (accessed at GET http://localhost:80/api/chatbot/getBotMsg)
-.get((req, res) => {    // first receive from UI server
-    res.send("received msg from UI server");
-})
-.post((req, res) => {    // then send to chatbot frontend
-    res.send("got bot msg");
-});
+
 
 module.exports = router;
